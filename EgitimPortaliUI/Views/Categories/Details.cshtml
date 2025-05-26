@@ -1,0 +1,63 @@
+﻿@{
+    ViewData["Title"] = "Kategori Detayları";
+    var categoryId = ViewBag.CategoryId;
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Kategori Detayları</h1>
+    <p class="mb-4">Bu sayfada kategori detaylarını görüntüleyebilirsiniz.</p>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Kategori Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <div id="categoryDetails">
+                <p><strong>ID:</strong> <span id="categoryId"></span></p>
+                <p><strong>Ad:</strong> <span id="categoryName"></span></p>
+                <p><strong>Açıklama:</strong> <span id="categoryDescription"></span></p>
+                <p><strong>Oluşturulma Tarihi:</strong> <span id="categoryCreatedAt"></span></p>
+            </div>
+            <div class="form-group mt-4">
+                <a href="@Url.Action("Index", "Categories")" class="btn btn-secondary">Geri Dön</a>
+                <a id="editButton" class="btn btn-primary">Düzenle</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+            $(document).ready(function () {
+                var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+                var categoryId = @categoryId;
+                var token = localStorage.getItem('token');
+
+                // Kategori bilgilerini getir
+                $.ajax({
+                    // Tekil controller adı kullan
+                    url: apiBaseUrl + '/api/Category/' + categoryId,
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    success: function (category) {
+                        $('#categoryId').text(category.id);
+                        $('#categoryName').text(category.name);
+                        $('#categoryDescription').text(category.description || '-');
+
+                        // Tarih formatı
+                        var createdAt = category.createdAt ? new Date(category.createdAt).toLocaleDateString() : '-';
+                        $('#categoryCreatedAt').text(createdAt);
+
+                        // Düzenle butonu
+                        $('#editButton').attr('href', '@Url.Action("Edit", "Categories")/' + category.id);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Kategori bilgileri alınırken hata:", xhr.responseText);
+                        alert('Kategori bilgileri alınırken bir hata oluştu!');
+                    }
+                });
+            });
+        </script>
+}

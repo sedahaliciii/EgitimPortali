@@ -1,0 +1,139 @@
+﻿@{
+    ViewData["Title"] = "Yeni Kategori";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Yeni Kategori</h1>
+    <p class="mb-4">Yeni bir kategori oluşturabilirsiniz.</p>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Kategori Bilgileri</h6>
+                </div>
+                <div class="card-body">
+                    <form id="createCategoryForm">
+                        <div class="form-group">
+                            <label for="categoryName">Kategori Adı</label>
+                            <input type="text" class="form-control" id="categoryName" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="categoryDescription">Açıklama</label>
+                            <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                        </div>
+
+                        <!-- IsActive Checkbox Eklendi -->
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="isActive" checked>
+                                <label class="custom-control-label" for="isActive">Aktif</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Kaydet
+                            </button>
+                            <a href="@Url.Action("Index", "Categories")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Geri Dön
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Debug Paneli -->
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="m-0 font-weight-bold">Debug Bilgileri</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul id="debugList"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addDebug(message, isError = false) {
+            var now = new Date().toLocaleTimeString();
+            var li = $('<li>').text(`[${now}] ${message}`);
+            if (isError) {
+                li.css('color', 'red').css('font-weight', 'bold');
+            }
+            $('#debugList').append(li);
+            console.log(message);
+        }
+
+        $(document).ready(function () {
+            var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+            if (!apiBaseUrl) {
+                apiBaseUrl = 'https://localhost:7155'; // Fallback URL
+            }
+
+            // Token kontrol et
+            var token = localStorage.getItem('token');
+            if (!token) {
+                addDebug("Token bulunamadı! Lütfen giriş yapın.", true);
+                setTimeout(function() {
+                    window.location.href = '@Url.Action("Login", "Account")';
+                }, 2000);
+                return;
+            }
+
+            // Form gönderimi
+            $('#createCategoryForm').submit(function (e) {
+                e.preventDefault();
+
+                var categoryData = {
+                    name: $('#categoryName').val(),
+                    description: $('#categoryDescription').val(),
+                    isActive: $('#isActive').prop('checked') // IsActive değerini gönder
+                };
+
+                addDebug("Kategori oluşturuluyor...");
+
+                $.ajax({
+                    url: apiBaseUrl + '/api/Category',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(categoryData),
+                    success: function () {
+                        addDebug("Kategori başarıyla oluşturuldu");
+
+                        // Başarılı mesajı göster
+                        Swal.fire({
+                            title: 'Başarılı!',
+                            text: 'Kategori başarıyla oluşturuldu.',
+                            icon: 'success',
+                            confirmButtonText: 'Tamam'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '@Url.Action("Index", "Categories")';
+                            }
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        addDebug("Kategori oluşturulurken hata: " + xhr.status + " " + error, true);
+
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: 'Kategori oluşturulurken bir hata oluştu.',
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

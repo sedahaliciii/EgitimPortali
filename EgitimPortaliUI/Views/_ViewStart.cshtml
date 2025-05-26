@@ -1,0 +1,15 @@
+﻿@{
+    // Auth controller'ın tüm view'leri için özel layout belirle
+    if (Context.Request.Path.Value.ToLower().StartsWith("/auth"))
+    {
+        Layout = "_LoginLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
+
+    // ApiBaseUrl'i ViewBag'e ekle
+    var configuration = Context.RequestServices.GetService<IConfiguration>();
+    ViewBag.ApiBaseUrl = configuration["ApiSettings:BaseUrl"];
+}

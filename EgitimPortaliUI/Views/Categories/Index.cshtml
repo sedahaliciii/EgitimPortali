@@ -1,0 +1,239 @@
+﻿@{
+    ViewData["Title"] = "Kategoriler";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Kategoriler</h1>
+    <p class="mb-4">Bu sayfada tüm kategorileri görüntüleyebilir, düzenleyebilir veya silebilirsiniz.</p>
+
+    <!-- Debug Panel -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Debug Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <ul id="debugList"></ul>
+            <button class="btn btn-sm btn-secondary" onclick="$('#debugList').empty()">Temizle</button>
+        </div>
+    </div>
+
+    <!-- DataTables -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Kategori Listesi</h6>
+            <a href="@Url.Action("Create", "Categories")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Yeni Kategori
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="categoriesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ad</th>
+                            <th>Açıklama</th>
+                            <th>Durum</th> <!-- Yeni durum kolonu ekledik -->
+                            <th>Oluşturulma Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Veriler JavaScript ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addDebug(message, isError = false) {
+            var now = new Date().toLocaleTimeString();
+            var li = $('<li>').text(`[${now}] ${message}`);
+            if (isError) {
+                li.css('color', 'red').css('font-weight', 'bold');
+            }
+            $('#debugList').append(li);
+            console.log(message);
+        }
+
+        $(document).ready(function () {
+            // API base URL'i al
+            var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+            if (!apiBaseUrl) {
+                apiBaseUrl = 'https://localhost:7155'; // Fallback URL
+                addDebug("ViewBag.ApiBaseUrl boş, varsayılan URL kullanılıyor", true);
+            }
+            addDebug("API Base URL: " + apiBaseUrl);
+
+            // Token kontrol et
+            var token = localStorage.getItem('token');
+            if (!token) {
+                addDebug("Token bulunamadı! Lütfen giriş yapın.", true);
+                setTimeout(function() {
+                    window.location.href = '@Url.Action("Login", "Account")';
+                }, 2000);
+                return;
+            }
+            addDebug("Token mevcut");
+
+            // Kullanıcı rollerini kontrol et
+            var roles = JSON.parse(localStorage.getItem('roles') || '[]');
+            addDebug("Kullanıcı rolleri: " + roles.join(', '));
+
+            // Kategorileri yükle
+            addDebug("Kategorileri yükleme isteği yapılıyor...");
+            $.ajax({
+                url: apiBaseUrl + '/api/Category',  // Tüm kategorileri getiren endpoint
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function (categories) {
+                    addDebug("Kategoriler başarıyla yüklendi, toplam: " + categories.length);
+
+                    var tbody = $('#categoriesTable tbody');
+                    tbody.empty();
+
+                    if (categories.length === 0) {
+                        tbody.append('<tr><td colspan="6" class="text-center">Henüz kategori bulunmuyor</td></tr>');
+                    } else {
+                        $.each(categories, function (i, category) {
+                            var row = $('<tr>');
+
+                            // Kategori aktif değilse satırı soluk göster
+                            if (!category.isActive) {
+                                row.addClass('text-muted');
+                            }
+
+                            row.append($('<td>').text(category.id));
+                            row.append($('<td>').text(category.name));
+                            row.append($('<td>').text(category.description || '-'));
+
+                            // Durum kolonu
+                            var statusCell = $('<td>');
+                            if (category.isActive) {
+                                statusCell.html('<span class="badge badge-success">Aktif</span>');
+                            } else {
+                                statusCell.html('<span class="badge badge-secondary">Pasif</span>');
+                            }
+                            row.append(statusCell);
+
+                            // Tarih formatı
+                            var createdAt = category.createdAt ? new Date(category.createdAt).toLocaleDateString() : '-';
+                            row.append($('<td>').text(createdAt));
+
+                            // İşlem butonları
+                            var actions = $('<td>').addClass('text-center');
+
+                            // Detay butonu
+                            actions.append(
+                                $('<a>')
+                                    .attr('href', '@Url.Action("Details", "Categories")/' + category.id)
+                                    .attr('class', 'btn btn-info btn-sm mr-1')
+                                    .attr('title', 'Detaylar')
+                                    .append($('<i>').attr('class', 'fas fa-eye'))
+                            );
+
+                            // Düzenle butonu (Sadece Admin kullanıcılar için)
+                            if (roles.includes('Admin')) {
+                                actions.append(
+                                    $('<a>')
+                                        .attr('href', '@Url.Action("Edit", "Categories")/' + category.id)
+                                        .attr('class', 'btn btn-primary btn-sm mr-1')
+                                        .attr('title', 'Düzenle')
+                                        .append($('<i>').attr('class', 'fas fa-edit'))
+                                );
+
+                                // Sil/Pasifleştir butonu
+                                var btnClass = category.isActive ? 'btn-warning' : 'btn-danger';
+                                var btnIcon = category.isActive ? 'fa-toggle-off' : 'fa-trash';
+                                var btnTitle = category.isActive ? 'Pasif Yap' : 'Sil';
+
+                                actions.append(
+                                    $('<button>')
+                                        .attr('class', 'btn ' + btnClass + ' btn-sm')
+                                        .attr('title', btnTitle)
+                                        .attr('data-id', category.id)
+                                        .attr('data-active', category.isActive)
+                                        .attr('onclick', 'toggleCategory(' + category.id + ', ' + category.isActive + ')')
+                                        .append($('<i>').attr('class', 'fas ' + btnIcon))
+                                );
+                            }
+
+                            row.append(actions);
+                            tbody.append(row);
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    addDebug("Kategoriler yüklenirken hata: " + xhr.status + " " + error, true);
+                    addDebug("Yanıt: " + xhr.responseText, true);
+                    $('#categoriesTable tbody').html('<tr><td colspan="6" class="text-center text-danger">Veriler alınırken bir hata oluştu.</td></tr>');
+
+                    if (xhr.status === 401) {
+                        addDebug("Yetkilendirme hatası. Token geçersiz olabilir.", true);
+                        setTimeout(function() {
+                            localStorage.removeItem('token');
+                            window.location.href = '@Url.Action("Login", "Account")';
+                        }, 3000);
+                    }
+                }
+            });
+
+            // Kategori durumunu değiştirme işlemi
+            window.toggleCategory = function(id, isActive) {
+                var action = isActive ? "pasif yapmak" : "silmek";
+                var verb = isActive ? "Pasif yapılıyor" : "Siliniyor";
+
+                if (confirm("Bu kategoriyi " + action + " istediğinizden emin misiniz?")) {
+                    addDebug("Kategori durumu değiştiriliyor - ID: " + id + ", Yeni durum: " + !isActive);
+
+                    if (isActive) {
+                        // Pasif yap
+                        $.ajax({
+                            url: apiBaseUrl + '/api/Category/' + id,
+                            type: 'PUT',
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                                'Content-Type': 'application/json'
+                            },
+                            data: JSON.stringify({
+                                id: id,
+                                isActive: false
+                            }),
+                            success: function () {
+                                addDebug("Kategori pasif yapıldı - ID: " + id);
+                                location.reload();
+                            },
+                            error: function (xhr, status, error) {
+                                addDebug("Kategori pasif yapılırken hata: " + xhr.status + " " + error, true);
+                                alert("Kategori pasif yapılırken bir hata oluştu: " + error);
+                            }
+                        });
+                    } else {
+                        // Sil
+                        $.ajax({
+                            url: apiBaseUrl + '/api/Category/' + id,
+                            type: 'DELETE',
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            success: function () {
+                                addDebug("Kategori silindi - ID: " + id);
+                                location.reload();
+                            },
+                            error: function (xhr, status, error) {
+                                addDebug("Kategori silinirken hata: " + xhr.status + " " + error, true);
+                                alert("Kategori silinirken bir hata oluştu: " + error);
+                            }
+                        });
+                    }
+                }
+            };
+        });
+    </script>
+}

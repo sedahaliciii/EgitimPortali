@@ -1,0 +1,173 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Ana Sayfa</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Toplam Kurs Sayısı -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Toplam Kurs</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCourses">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toplam Kategori Sayısı -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Toplam Kategori</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCategories">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-folder fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toplam Kullanıcı Sayısı (Sadece Admin'e görünür) -->
+        <div class="col-xl-3 col-md-6 mb-4 admin-only">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Toplam Kullanıcı</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Eklenen Kurslar -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Son Eklenen Kurslar</h6>
+        </div>
+        <div class="card-body">
+            <div class="row" id="latestCourses">
+                <!-- Kurslar JavaScript ile doldurulacak -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+            var userRoles = JSON.parse(localStorage.getItem('roles') || '[]');
+            var isAdmin = userRoles.includes('Admin');
+            
+            // İstatistikleri getir
+            function loadStatistics() {
+                // Kurs sayısını getir
+                $.ajax({
+                    url: apiBaseUrl + '/api/Courses/count',
+                    type: 'GET',
+                    success: function (count) {
+                        $('#totalCourses').text(count);
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+                
+                // Kategori sayısını getir
+                $.ajax({
+                    url: apiBaseUrl + '/api/Categories/count',
+                    type: 'GET',
+                    success: function (count) {
+                        $('#totalCategories').text(count);
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+                
+                // Admin ise kullanıcı sayısını getir
+                if (isAdmin) {
+                    $.ajax({
+                        url: apiBaseUrl + '/api/Auth/getuserscount',
+                        type: 'GET',
+                        success: function (count) {
+                            $('#totalUsers').text(count);
+                        },
+                        error: function (xhr) {
+                            console.log(xhr);
+                        }
+                    });
+                }
+            }
+            
+            // Son eklenen kursları getir
+            function loadLatestCourses() {
+                $.ajax({
+                    url: apiBaseUrl + '/api/Courses/latest/6', // Son 6 kursu getir
+                    type: 'GET',
+                    success: function (courses) {
+                        var coursesContainer = $('#latestCourses');
+                        coursesContainer.empty();
+                        
+                        $.each(courses, function (index, course) {
+                            var imageUrl = course.imageUrl ? course.imageUrl : '/sbadmin2/img/course-placeholder.jpg';
+                            
+                            var courseCard = '<div class="col-lg-4 col-md-6 mb-4">' +
+                                '<div class="card h-100">' +
+                                '<a href="@Url.Action("Details", "Courses")/' + course.id + '">' +
+                                '<img class="card-img-top" src="' + imageUrl + '" alt="' + course.title + '" style="height: 200px; object-fit: cover;">' +
+                                '</a>' +
+                                '<div class="card-body">' +
+                                '<h4 class="card-title">' +
+                                '<a href="@Url.Action("Details", "Courses")/' + course.id + '">' + course.title + '</a>' +
+                                '</h4>' +
+                                '<h5>' + course.categoryName + '</h5>' +
+                                                                '<p class="card-text">' + (course.description ? course.description.substring(0, 100) + '...' : '') + '</p>' +
+                                '</div>' +
+                                '<div class="card-footer">' +
+                                '<small class="text-muted">Eklenme: ' + new Date(course.createdAt).toLocaleDateString() + '</small>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>';
+
+                            coursesContainer.append(courseCard);
+                        });
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                    }
+                });
+            }
+
+            // Sayfa yüklendiğinde verileri getir
+            loadStatistics();
+            loadLatestCourses();
+        });
+    </script>
+}

@@ -1,0 +1,487 @@
+﻿@{
+    ViewData["Title"] = "Profil Sayfası";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Profil Sayfası</h1>
+    <p class="mb-4">Kişisel bilgilerinizi görüntüleyebilir ve düzenleyebilirsiniz.</p>
+
+    <!-- Debug Panel -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Debug Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <ul id="debugList"></ul>
+            <button class="btn btn-sm btn-secondary" onclick="$('#debugList').empty()">Temizle</button>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Profil Bilgileri</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img id="profileImage" class="img-profile rounded-circle" width="150" height="150" src="https://via.placeholder.com/150">
+                    </div>
+                    <h4 id="fullNameDisplay" class="text-center font-weight-bold"></h4>
+                    <p id="emailDisplay" class="text-center text-gray-600"></p>
+                    <hr>
+                    <div class="text-center">
+                        <button class="btn btn-primary btn-sm" id="editProfileBtn">
+                            <i class="fas fa-user-edit"></i> Profili Düzenle
+                        </button>
+                        <button class="btn btn-warning btn-sm" id="changePasswordBtn">
+                            <i class="fas fa-key"></i> Şifre Değiştir
+                        </button>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Üyelik Durumu</div>
+                    <div id="memberStatusBadge" class="h5 mb-0 font-weight-bold text-gray-800">
+                        <span class="badge badge-success">Aktif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Details Card -->
+        <div class="col-xl-8 col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Bilgileri</h6>
+                </div>
+                <div class="card-body">
+                    <div id="profileDetailsView">
+                        <div class="row mb-3">
+                            <div class="col-md-3 font-weight-bold">Kullanıcı Adı:</div>
+                            <div class="col-md-9" id="usernameDisplay"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 font-weight-bold">Ad Soyad:</div>
+                            <div class="col-md-9" id="nameDisplay"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 font-weight-bold">Email:</div>
+                            <div class="col-md-9" id="emailInfo"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 font-weight-bold">Telefon:</div>
+                            <div class="col-md-9" id="phoneDisplay">-</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 font-weight-bold">Roller:</div>
+                            <div class="col-md-9" id="rolesDisplay"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 font-weight-bold">Kayıt Tarihi:</div>
+                            <div class="col-md-9" id="registrationDateDisplay"></div>
+                        </div>
+                    </div>
+
+                    <div id="profileEditForm" style="display: none;">
+                        <form id="updateProfileForm">
+                            <div class="form-group row">
+                                <label for="firstName" class="col-md-3 col-form-label">Ad:</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="firstName" name="firstName">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="lastName" class="col-md-3 col-form-label">Soyad:</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="lastName" name="lastName">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="email" class="col-md-3 col-form-label">Email:</label>
+                                <div class="col-md-9">
+                                    <input type="email" class="form-control" id="email" name="email">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="phone" class="col-md-3 col-form-label">Telefon:</label>
+                                <div class="col-md-9">
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-10 offset-sm-2">
+                                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                                    <button type="button" id="cancelEditBtn" class="btn btn-secondary">İptal</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="changePasswordForm" style="display: none;">
+                        <form id="updatePasswordForm">
+                            <div class="form-group row">
+                                <label for="currentPassword" class="col-md-4 col-form-label">Mevcut Şifre:</label>
+                                <div class="col-md-8">
+                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="newPassword" class="col-md-4 col-form-label">Yeni Şifre:</label>
+                                <div class="col-md-8">
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="confirmNewPassword" class="col-md-4 col-form-label">Yeni Şifre (Tekrar):</label>
+                                <div class="col-md-8">
+                                    <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-10 offset-sm-2">
+                                    <button type="submit" class="btn btn-primary">Şifre Değiştir</button>
+                                    <button type="button" id="cancelPasswordBtn" class="btn btn-secondary">İptal</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrolled Courses -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Kayıtlı Olduğum Kurslar</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="enrolledCoursesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Kurs Adı</th>
+                            <th>Kategori</th>
+                            <th>Eğitmen</th>
+                            <th>İlerleme</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enrolledCoursesBody">
+                        <!-- Veriler JavaScript ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addDebug(message, isError = false) {
+            var now = new Date().toLocaleTimeString();
+            var li = $('<li>').text(`[${now}] ${message}`);
+            if (isError) {
+                li.css('color', 'red').css('font-weight', 'bold');
+            }
+            $('#debugList').append(li);
+            console.log(message);
+        }
+
+        $(document).ready(function () {
+            // API base URL'i al
+            var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+            if (!apiBaseUrl) {
+                apiBaseUrl = 'https://localhost:7155'; // Fallback URL
+                addDebug("ViewBag.ApiBaseUrl boş, varsayılan URL kullanılıyor", true);
+            }
+            addDebug("API Base URL: " + apiBaseUrl);
+
+            // Token kontrol et
+            var token = localStorage.getItem('token');
+            if (!token) {
+                addDebug("Token bulunamadı! Lütfen giriş yapın.", true);
+                setTimeout(function() {
+                    window.location.href = '@Url.Action("Login", "Account")';
+                }, 2000);
+                return;
+            }
+
+            addDebug("Token mevcut");
+
+            // Kullanıcı bilgisini yükle
+            loadUserProfile();
+
+            // Kayıtlı kursları yükle
+            loadEnrolledCourses();
+
+            // Edit butonuna tıklama
+            $('#editProfileBtn').click(function() {
+                $('#profileDetailsView').hide();
+                $('#changePasswordForm').hide();
+                $('#profileEditForm').show();
+            });
+
+            // Şifre değiştir butonuna tıklama
+            $('#changePasswordBtn').click(function() {
+                $('#profileDetailsView').hide();
+                $('#profileEditForm').hide();
+                $('#changePasswordForm').show();
+            });
+
+            // İptal butonlarına tıklama
+            $('#cancelEditBtn').click(function() {
+                $('#profileEditForm').hide();
+                $('#profileDetailsView').show();
+            });
+
+            $('#cancelPasswordBtn').click(function() {
+                $('#changePasswordForm').hide();
+                $('#profileDetailsView').show();
+            });
+
+            // Profil güncelleme formunu gönderme
+            $('#updateProfileForm').submit(function(e) {
+                e.preventDefault();
+                updateUserProfile();
+            });
+
+            // Şifre güncelleme formunu gönderme
+            $('#updatePasswordForm').submit(function(e) {
+                e.preventDefault();
+
+                // Şifre kontrolleri
+                var newPassword = $('#newPassword').val();
+                var confirmPassword = $('#confirmNewPassword').val();
+
+                if (newPassword !== confirmPassword) {
+                    alert("Yeni şifreler eşleşmiyor!");
+                    return;
+                }
+
+                updatePassword();
+            });
+
+            function loadUserProfile() {
+                addDebug("Kullanıcı profili yükleniyor...");
+
+                $.ajax({
+                    url: apiBaseUrl + '/api/Account/profile',
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    success: function(user) {
+                        addDebug("Kullanıcı profili başarıyla yüklendi");
+
+                        // Profil bilgilerini göster
+                        $('#fullNameDisplay').text(user.firstName + ' ' + user.lastName);
+                        $('#emailDisplay').text(user.email);
+                        $('#usernameDisplay').text(user.userName);
+                        $('#nameDisplay').text(user.firstName + ' ' + user.lastName);
+                        $('#emailInfo').text(user.email);
+                        $('#phoneDisplay').text(user.phoneNumber || '-');
+
+                        // Roller
+                        var roles = user.roles || [];
+                        $('#rolesDisplay').html('');
+                        roles.forEach(function(role) {
+                            $('#rolesDisplay').append('<span class="badge badge-primary mr-1">' + role + '</span>');
+                        });
+
+                        // Kayıt tarihi
+                        var registrationDate = user.registrationDate ? new Date(user.registrationDate).toLocaleDateString() : '-';
+                        $('#registrationDateDisplay').text(registrationDate);
+
+                        // Form alanlarını doldur
+                        $('#firstName').val(user.firstName);
+                        $('#lastName').val(user.lastName);
+                        $('#email').val(user.email);
+                        $('#phone').val(user.phoneNumber);
+
+                        // Profil resmi (eğer varsa)
+                        if (user.profileImageUrl) {
+                            $('#profileImage').attr('src', user.profileImageUrl);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        addDebug("Kullanıcı profili yüklenirken hata: " + xhr.status + " " + error, true);
+
+                        if (xhr.status === 401) {
+                            addDebug("Yetkilendirme hatası. Token geçersiz olabilir.", true);
+                            setTimeout(function() {
+                                localStorage.removeItem('token');
+                                window.location.href = '@Url.Action("Login", "Account")';
+                            }, 3000);
+                        }
+                    }
+                });
+            }
+
+            function updateUserProfile() {
+                var profileData = {
+                    firstName: $('#firstName').val(),
+                    lastName: $('#lastName').val(),
+                    email: $('#email').val(),
+                    phoneNumber: $('#phone').val()
+                };
+
+                addDebug("Profil güncelleniyor...");
+
+                $.ajax({
+                    url: apiBaseUrl + '/api/Account/update-profile',
+                    type: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(profileData),
+                    success: function() {
+                        addDebug("Profil başarıyla güncellendi");
+
+                        // Başarılı mesajı göster
+                        Swal.fire({
+                            title: 'Başarılı!',
+                            text: 'Profil bilgileriniz güncellendi.',
+                            icon: 'success',
+                            confirmButtonText: 'Tamam'
+                        }).then(() => {
+                            $('#profileEditForm').hide();
+                            $('#profileDetailsView').show();
+                            loadUserProfile(); // Profil bilgilerini yenile
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        addDebug("Profil güncellenirken hata: " + xhr.status + " " + error, true);
+
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: 'Profil güncellenirken bir hata oluştu: ' + (xhr.responseJSON?.message || error),
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            }
+
+            function updatePassword() {
+                var passwordData = {
+                    currentPassword: $('#currentPassword').val(),
+                    newPassword: $('#newPassword').val(),
+                    confirmPassword: $('#confirmNewPassword').val()
+                };
+
+                addDebug("Şifre değiştiriliyor...");
+
+                $.ajax({
+                    url: apiBaseUrl + '/api/Account/change-password',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(passwordData),
+                    success: function() {
+                        addDebug("Şifre başarıyla değiştirildi");
+
+                        // Başarılı mesajı göster
+                        Swal.fire({
+                            title: 'Başarılı!',
+                            text: 'Şifreniz başarıyla değiştirildi.',
+                            icon: 'success',
+                            confirmButtonText: 'Tamam'
+                        }).then(() => {
+                            // Formu temizle ve kapat
+                            $('#updatePasswordForm')[0].reset();
+                            $('#changePasswordForm').hide();
+                            $('#profileDetailsView').show();
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        addDebug("Şifre değiştirilirken hata: " + xhr.status + " " + error, true);
+
+                        Swal.fire({
+                            title: 'Hata!',
+                            text: 'Şifre değiştirilirken bir hata oluştu: ' + (xhr.responseJSON?.message || error),
+                            icon: 'error',
+                            confirmButtonText: 'Tamam'
+                        });
+                    }
+                });
+            }
+
+            function loadEnrolledCourses() {
+                addDebug("Kayıtlı kurslar yükleniyor...");
+
+                $.ajax({
+                    url: apiBaseUrl + '/api/Enrollment/my-courses',
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    success: function(enrollments) {
+                        addDebug("Kayıtlı kurslar başarıyla yüklendi, toplam: " + enrollments.length);
+
+                        var tbody = $('#enrolledCoursesBody');
+                        tbody.empty();
+
+                        if (enrollments.length === 0) {
+                            tbody.append('<tr><td colspan="6" class="text-center">Henüz kayıtlı olduğunuz kurs bulunmuyor</td></tr>');
+                        } else {
+                            $.each(enrollments, function(i, enrollment) {
+                                var course = enrollment.course;
+
+                                var row = $('<tr>');
+                                row.append($('<td>').text(course.title));
+                                row.append($('<td>').text(course.categoryName));
+                                row.append($('<td>').text(course.instructorName));
+
+                                // İlerleme çubuğu
+                                var progressCell = $('<td>');
+                                var progressBar = $('<div class="progress" style="height: 20px">');
+                                var progressValue = enrollment.progress || 0;
+                                progressBar.append(
+                                    $('<div class="progress-bar">')
+                                        .attr('role', 'progressbar')
+                                        .css('width', progressValue + '%')
+                                        .attr('aria-valuenow', progressValue)
+                                        .attr('aria-valuemin', 0)
+                                        .attr('aria-valuemax', 100)
+                                        .text(progressValue + '%')
+                                );
+                                progressCell.append(progressBar);
+                                row.append(progressCell);
+
+                                // Kayıt tarihi
+                                var enrollmentDate = enrollment.enrollmentDate ? new Date(enrollment.enrollmentDate).toLocaleDateString() : '-';
+                                row.append($('<td>').text(enrollmentDate));
+
+                                // İşlemler
+                                var actions = $('<td>').addClass('text-center');
+                                actions.append(
+                                    $('<a>')
+                                        .attr('href', '@Url.Action("Details", "Courses")/' + course.id)
+                                        .attr('class', 'btn btn-primary btn-sm')
+                                        .attr('title', 'Kursa Git')
+                                        .append($('<i>').attr('class', 'fas fa-book-open'))
+                                        .append(' Kursa Git')
+                                );
+                                row.append(actions);
+
+                                tbody.append(row);
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        addDebug("Kayıtlı kurslar yüklenirken hata: " + xhr.status + " " + error, true);
+                        $('#enrolledCoursesBody').html('<tr><td colspan="6" class="text-center text-danger">Kayıtlı kurslar alınırken bir hata oluştu</td></tr>');
+                    }
+                });
+            }
+        });
+    </script>
+}

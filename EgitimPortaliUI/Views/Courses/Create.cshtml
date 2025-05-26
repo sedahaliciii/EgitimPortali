@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Kurs Oluştur";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Yeni Kurs Oluştur</h1>
+    <p class="mb-4">Bu sayfada yeni bir kurs oluşturabilirsiniz.</p>
+
+    <!-- Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Kurs Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <form id="createCourseForm">
+                <div class="form-group">
+                    <label for="title">Kurs Başlığı</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Açıklama</label>
+                    <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="categoryId">Kategori</label>
+                    <select class="form-control" id="categoryId" name="categoryId" required>
+                        <option value="">Kategori Seçin</option>
+                        <!-- Kategoriler AJAX ile doldurulacak -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="imageUrl">Görsel URL</label>
+                    <input type="url" class="form-control" id="imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="alert alert-success" id="successMessage" style="display: none;">
+                    Kurs başarıyla oluşturuldu!
+                </div>
+                <div class="alert alert-danger" id="errorMessage" style="display: none;">
+                    Kurs oluşturulurken bir hata oluştu!
+                </div>
+                <div class="form-group">
+                    <a href="@Url.Action("Index", "Courses")" class="btn btn-secondary">Geri Dön</a>
+                    <button type="submit" class="btn btn-primary">Kurs Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+            $(document).ready(function () {
+                var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+
+                // Kategorileri getir ve select'e doldur
+                $.ajax({
+                    url: apiBaseUrl + '/api/Categories',
+                    type: 'GET',
+                    success: function (categories) {
+                        var select = $('#categoryId');
+
+                        $.each(categories, function (index, category) {
+                            select.append('<option value="' + category.id + '">' + category.name + '</option>');
+                        });
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                        alert('Kategoriler alınırken bir hata oluştu!');
+                    }
+                });
+
+                $('#createCourseForm').submit(function (e) {
+                    e.preventDefault();
+
+                    var userId = localStorage.getItem('userId');
+
+                    var courseData = {
+                        title: $('#title').val(),
+                        description: $('#description').val(),
+                        categoryId: $('#categoryId').val(),
+                        imageUrl: $('#imageUrl').val(),
+                        instructorId: userId
+                    };
+
+                    $.ajax({
+                        url: apiBaseUrl + '/api/Courses',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(courseData),
+                        success: function (response) {
+                            $('#successMessage').show();
+                            $('#errorMessage').hide();
+
+                            // Form alanlarını temizle
+                            $('#title').val('');
+                            $('#description').val('');
+                            $('#categoryId').val('');
+                            $('#imageUrl').val('');
+
+                            // 2 saniye sonra listeye yönlendir
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index", "Courses")';
+                            }, 2000);
+                        },
+                        error: function (xhr) {
+                            console.log(xhr);
+                            $('#errorMessage').text('Kurs oluşturulurken bir hata oluştu: ' + xhr.responseText).show();
+                            $('#successMessage').hide();
+                        }
+                    });
+                });
+            });
+        </script>
+}

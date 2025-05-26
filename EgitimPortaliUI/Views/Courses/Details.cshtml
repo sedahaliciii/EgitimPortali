@@ -1,0 +1,108 @@
+﻿@{
+    ViewData["Title"] = "Kurs Detayları";
+    var courseId = ViewBag.CourseId;
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Kurs Detayları</h1>
+    <p class="mb-4">Bu sayfada kurs detaylarını görüntüleyebilirsiniz.</p>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Course Image -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Kurs Görseli</h6>
+                </div>
+                <div class="card-body text-center">
+                    <img id="courseImage" src="" alt="Kurs Görseli" class="img-fluid" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Course Details -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Kurs Bilgileri</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <th>ID</th>
+                                    <td id="courseId"></td>
+                                </tr>
+                                <tr>
+                                    <th>Başlık</th>
+                                    <td id="courseTitle"></td>
+                                </tr>
+                                <tr>
+                                    <th>Açıklama</th>
+                                    <td id="courseDescription"></td>
+                                </tr>
+                                <tr>
+                                    <th>Kategori</th>
+                                    <td id="courseCategory"></td>
+                                </tr>
+                                <tr>
+                                    <th>Eğitmen</th>
+                                    <td id="courseInstructor"></td>
+                                </tr>
+                                <tr>
+                                    <th>Oluşturulma Tarihi</th>
+                                    <td id="courseCreatedAt"></td>
+                                </tr>
+                                <tr>
+                                    <th>Son Güncelleme</th>
+                                    <td id="courseUpdatedAt"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <a href="@Url.Action("Index", "Courses")" class="btn btn-secondary">Geri Dön</a>
+                        <a href="@Url.Action("Edit", "Courses", new { id = courseId })" class="btn btn-primary admin-only">Düzenle</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+            $(document).ready(function () {
+                var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+                var courseId = '@courseId';
+
+                // Kurs detaylarını getir
+                $.ajax({
+                    url: apiBaseUrl + '/api/Courses/' + courseId,
+                    type: 'GET',
+                    success: function (course) {
+                        $('#courseId').text(course.id);
+                        $('#courseTitle').text(course.title);
+                        $('#courseDescription').text(course.description || '-');
+                        $('#courseCategory').text(course.categoryName);
+                        $('#courseInstructor').text(course.instructorName || '-');
+                        $('#courseCreatedAt').text(new Date(course.createdAt).toLocaleString());
+                        $('#courseUpdatedAt').text(course.updatedAt ? new Date(course.updatedAt).toLocaleString() : '-');
+
+                        // Kurs görseli
+                        var imageUrl = course.imageUrl ? course.imageUrl : '/sbadmin2/img/course-placeholder.jpg';
+                        $('#courseImage').attr('src', imageUrl);
+
+                        // Sayfa başlığını güncelle
+                        document.title = course.title + ' - Kurs Detayları';
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                        alert('Kurs bilgileri alınırken bir hata oluştu!');
+                    }
+                });
+            });
+        </script>
+}

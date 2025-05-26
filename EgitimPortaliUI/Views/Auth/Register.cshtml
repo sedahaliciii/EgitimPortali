@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Giriş";
+}
+
+<div class="container">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+            <div class="row">
+                <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+                <div class="col-lg-7">
+                    <div class="p-5">
+                        <div class="text-center">
+                            <h1 class="h4 text-gray-900 mb-4">Hesap Oluştur!</h1>
+                        </div>
+                        <form id="registerForm" class="user">
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <input type="text" class="form-control form-control-user" id="firstName"
+                                        placeholder="Adınız" name="firstName" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control form-control-user" id="lastName"
+                                        placeholder="Soyadınız" name="lastName" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="email" class="form-control form-control-user" id="email"
+                                    placeholder="E-posta Adresi" name="email" required>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <input type="password" class="form-control form-control-user"
+                                        id="password" placeholder="Şifre" name="password" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="password" class="form-control form-control-user"
+                                        id="confirmPassword" placeholder="Şifre Tekrar" name="confirmPassword" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-user btn-block">
+                                Hesap Oluştur
+                            </button>
+                            <div id="registerMessage" class="text-center mt-3" style="display: none;"></div>
+                        </form>
+                        <hr>
+                        <div class="text-center">
+                            <a class="small" href="@Url.Action("ForgotPassword", "Auth")">Şifremi Unuttum?</a>
+                        </div>
+                        <div class="text-center">
+                            <a class="small" href="@Url.Action("Login", "Auth")">Zaten bir hesabınız var mı? Giriş Yap!</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#registerForm").submit(function (e) {
+                e.preventDefault();
+                
+                // Şifre kontrolü
+                if ($("#password").val() !== $("#confirmPassword").val()) {
+                    $("#registerMessage").text("Şifreler eşleşmiyor!").addClass("text-danger").show();
+                    return;
+                }
+                
+                var registerData = {
+                    firstName: $("#firstName").val(),
+                    lastName: $("#lastName").val(),
+                    email: $("#email").val(),
+                    userName: $("#email").val(), // E-posta adresini kullanıcı adı olarak kullan
+                    password: $("#password").val()
+                };
+
+                $.ajax({
+                    url: '@ViewBag.ApiBaseUrl/api/Auth/register',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(registerData),
+                    success: function (response) {
+                        $("#registerMessage").text("Kayıt başarılı! Giriş yapabilirsiniz.").removeClass("text-danger").addClass("text-success").show();
+                        // 3 saniye sonra giriş sayfasına yönlendir
+                        setTimeout(function() {
+                            window.location.href = '@Url.Action("Login", "Auth")';
+                        }, 3000);
+                    },
+                    error: function (xhr) {
+                        var errorMessage = "Kayıt başarısız. Lütfen bilgilerinizi kontrol edin.";
+                        if (xhr.responseJSON) {
+                            if (typeof xhr.responseJSON === 'string') {
+                                errorMessage = xhr.responseJSON;
+                            } else if (xhr.responseJSON.errors) {
+                                errorMessage = Object.values(xhr.responseJSON.errors).join("<br>");
+                            }
+                        }
+                        
+                        $("#registerMessage").html(errorMessage).addClass("text-danger").show();
+                    }
+                });
+            });
+        });
+    </script>
+}   

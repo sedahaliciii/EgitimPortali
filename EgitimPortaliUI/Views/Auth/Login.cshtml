@@ -1,0 +1,122 @@
+﻿@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Giriş";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-12 col-md-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                        <div class="col-lg-6">
+                            <div class="p-5">
+                                <div class="text-center">
+                                    <h1 class="h4 text-gray-900 mb-4">Hoş Geldiniz!</h1>
+                                </div>
+                                <form id="loginForm" class="user">
+                                    <div class="form-group">
+                                        <input type="email" class="form-control form-control-user"
+                                               id="inputEmail" aria-describedby="emailHelp"
+                                               placeholder="E-posta Adresiniz..." name="email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="password" class="form-control form-control-user"
+                                               id="inputPassword" placeholder="Şifre" name="password" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="custom-control custom-checkbox small">
+                                            <input type="checkbox" class="custom-control-input" id="rememberMe">
+                                            <label class="custom-control-label" for="rememberMe">Beni Hatırla</label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-user btn-block">
+                                        Giriş Yap
+                                    </button>
+                                    <div id="loginMessage" class="text-center mt-3" style="display: none;"></div>
+                                </form>
+                                <hr>
+                                <div class="text-center">
+                                    <a class="small" href="@Url.Action("ForgotPassword", "Auth")">Şifremi Unuttum?</a>
+                                </div>
+                                <div class="text-center">
+                                    <a class="small" href="@Url.Action("Register", "Auth")">Hesap Oluştur!</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Debug için API URL'ini konsola yazdır
+            console.log("API URL:", '@ViewBag.ApiBaseUrl');
+
+            $("#loginForm").submit(function (e) {
+                e.preventDefault();
+
+                // Form gönderildiğini göstermek için buton metnini değiştir
+                var loginButton = $(this).find('button[type="submit"]');
+                var originalButtonText = loginButton.text();
+                loginButton.prop('disabled', true).text('Giriş Yapılıyor...');
+
+                var loginData = {
+                    email: $("#inputEmail").val(),
+                    password: $("#inputPassword").val()
+                };
+
+                // Debug için giriş verilerini konsola yazdır
+                console.log("Login data:", JSON.stringify(loginData));
+
+                $.ajax({
+                    url: '@ViewBag.ApiBaseUrl/api/Auth/login',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(loginData),
+                    success: function (response) {
+                        // Başarılı cevabı konsolda göster
+                        console.log("Login successful:", response);
+
+                        // JWT token'ı localStorage'a kaydet
+                        localStorage.setItem('token', response.token);
+                        localStorage.setItem('userId', response.userId);
+                        localStorage.setItem('email', response.email);
+                        localStorage.setItem('roles', JSON.stringify(response.roles));
+                        localStorage.setItem('expiration', response.expiration);
+
+                        // Login başarılı mesajını göster
+                        $("#loginMessage").text("Giriş başarılı! Yönlendiriliyorsunuz...").removeClass("text-danger").addClass("text-success").show();
+
+                        // Kullanıcıyı yönlendir (Admin veya Student rolüne göre)
+                        setTimeout(function() {
+                            window.location.href = '@Url.Action("Index", "Home")';
+                        }, 1000);
+                    },
+                    error: function (xhr, status, error) {
+                        // Hata durumunda ayrıntılı bilgi konsola yazdır
+                        console.error("Login error:", xhr, status, error);
+
+                        var errorMessage = "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.";
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            } else if (typeof xhr.responseJSON === 'string') {
+                                errorMessage = xhr.responseJSON;
+                            }
+                        }
+
+                        // Butonu normale döndür ve hata mesajını göster
+                        loginButton.prop('disabled', false).text(originalButtonText);
+                        $("#loginMessage").text(errorMessage).addClass("text-danger").show();
+                    }
+                });
+            });
+        });
+    </script>
+}

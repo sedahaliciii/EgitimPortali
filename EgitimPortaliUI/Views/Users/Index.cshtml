@@ -1,0 +1,88 @@
+﻿@{
+    ViewData["Title"] = "Kullanıcılar";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Kullanıcılar</h1>
+    <p class="mb-4">Bu sayfada tüm kullanıcıları görüntüleyebilirsiniz.</p>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Listesi</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Profil</th>
+                            <th>Ad</th>
+                            <th>Soyad</th>
+                            <th>E-posta</th>
+                            <th>Kullanıcı Adı</th>
+                            <th>Kayıt Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Veriler JavaScript ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/sbadmin2/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/sbadmin2/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var apiBaseUrl = '@ViewBag.ApiBaseUrl';
+
+            // Kullanıcı listesini getir
+            function loadUsers() {
+                $.ajax({
+                    url: apiBaseUrl + '/api/Auth/getallusers',
+                    type: 'GET',
+                    success: function (data) {
+                        var tableBody = $('#usersTableBody');
+                        tableBody.empty();
+
+                        $.each(data, function (index, user) {
+                            var profileImage = user.profileImageUrl ? user.profileImageUrl : '/sbadmin2/img/undraw_profile.svg';
+
+                            var row = '<tr>' +
+                                '<td>' + user.id + '</td>' +
+                                '<td><img src="' + profileImage + '" alt="' + user.userName + '" style="width: 50px; height: 50px; border-radius: 50%;"></td>' +
+                                '<td>' + (user.firstName || '-') + '</td>' +
+                                '<td>' + (user.lastName || '-') + '</td>' +
+                                '<td>' + user.email + '</td>' +
+                                '<td>' + user.userName + '</td>' +
+                                '<td>' + new Date(user.registrationDate).toLocaleDateString() + '</td>' +
+                                '</tr>';
+                            tableBody.append(row);
+                        });
+
+                        // DataTables'ı başlat
+                        $('#usersTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Turkish.json"
+                            }
+                        });
+                    },
+                    error: function (xhr) {
+                        console.log(xhr);
+                        alert('Kullanıcı listesi alınırken bir hata oluştu!');
+                    }
+                });
+            }
+
+            // Sayfa yüklendiğinde kullanıcıları getir
+            loadUsers();
+        });
+    </script>
+}
