@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "EgitimPortaliAPI\\EgitimPortaliAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "EgitimPortaliUI\\EgitimPortaliUI.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
